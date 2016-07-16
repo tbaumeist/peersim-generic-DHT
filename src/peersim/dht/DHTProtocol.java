@@ -1,166 +1,102 @@
 package peersim.dht;
 
-import java.util.LinkedList;
-import java.util.List;
-
 import peersim.config.Configuration;
-import peersim.config.FastConfig;
-import peersim.core.Linkable;
 import peersim.core.Node;
-import peersim.dht.loopDetection.GUIDLoopDetection;
-import peersim.dht.loopDetection.LoopDetection;
-import peersim.dht.message.DHTMessage;
-import peersim.dht.message.OneWayPingMessage;
+import peersim.dht.router.DHTRouter;
+import peersim.dht.router.DHTRouterGreedy;
+import peersim.dht.utils.Address;
 import peersim.edsim.EDProtocol;
-import peersim.transport.Transport;
 
 public class DHTProtocol implements EDProtocol, Cloneable {
 
-	/**
-	 * The {@value #PAR_LOOP} configuration parameter defines which loop
-	 * detection protocol message sent by the simulator should use. This
-	 * defaults to the {@link peersim.dht.loopDetection.GUIDLoopDetection}
-	 * class.
-	 * 
-	 * @config
-	 */
-	private static final String PAR_LOOP = "loop";
+    /**
+     * The {@value #PAR_LINK} configuration parameter defines which protocol
+     * is used to store the links (ie the peer relationships).
+     *
+     * @config
+     */
+    private static final String PAR_LINK = "linkable";
 
-	private static List<DHTMessage> allMessages = null;
-	
-	private final String prefix;
-	private double location = 0;
+    /**
+     * The {@value #PAR_TRANS} configuration parameter defines which protocol
+     * is used to transport the messages (ie the connections between peers).
+     *
+     * @config
+     */
+    private static final String PAR_TRANS = "transport";
 
-	public DHTProtocol(String prefix) {
-		this.prefix = prefix;
-	}
+    /**
+     * The {@value #PAR_ROUTER} configuration parameter defines which routing protocol
+     * the simulator should use: defaults to the {@link peersim.dht.router.DHTRouterGreedy}
+     * class.
+     *
+     * @config
+     */
+    private static final String PAR_ROUTER = "router";
 
-	public LoopDetection createLoopDetection() {
-		try {
-			// Load the configured loop detection protocol
-			// By default GUID based loop detection is used
-			return (LoopDetection) Configuration.getInstance(this.prefix + "."
-					+ PAR_LOOP, new GUIDLoopDetection(""));
+    private final String prefix;
+    private final int linkPid, transportPid;
 
-		} catch (Exception e) {
-			System.err.println(String.format(
-					"Error loading a loop protocol: %s", e.getMessage()));
-			System.exit(5); // abort
-		}
-		return null;
-	}
+    private Address address = null;
+    private DHTRouter router = null;
 
-	private double diff(double a, double b) {
-		return Math.abs(a - b);
-	}
+    public DHTProtocol(String prefix) {
+        this.prefix = prefix;
+        this.linkPid = Configuration.getPid(prefix + "." + PAR_LINK);
+        this.transportPid = Configuration.getPid(prefix + "." + PAR_TRANS);
+    }
 
-	@Override
-	public void processEvent(Node node, int pid, Object event) {
+    @Override
+    public void processEvent(Node node, int pid, Object event) {
+        this.getRouter().route(node, pid, this.transportPid, this.linkPid, event);
+    }
 
-		OneWayPingMessage m = (OneWayPingMessage) event;
-		DHTProtocol currentNode = (DHTProtocol) node.getProtocol(pid);
-		Transport transport = (Transport) node.getProtocol(FastConfig
-				.getTransport(pid));
+    /**
+     * Set the address of a node in the DHT.
+     *
+     * @param address value between 0 and 1
+     */
+    public void setAddress(double address) {
 
-		// Add node to the messages visited list
-		if (!m.received(node)) {
-			// already visited, backtrack to previous node
-			Node previous = m.getPreviousNode();
-			if (m.backtrack())
-				transport.send(node, previous, m, pid);
-			return;
-		}
+        this.address = new Address(address);
+    }
 
-		if (currentNode.getLocation() == m.getTarget()) {
-			m.setDelivered();
-			return; // reached target
-		}
+    /**
+     * @return address of the node
+     */
+    public Address getAddress() {
+        return this.address;
+    }
 
-		Linkable linkable = (Linkable) node.getProtocol(FastConfig
-				.getLinkable(pid));
-		Node next = null;
-		DHTProtocol nextDHT = null;
-		for (int i = 0; i < linkable.degree(); i++) {
-			Node n = linkable.getNeighbor(i);
-			if (n.equals(node))
-				continue;
-			DHTProtocol nDHT = (DHTProtocol) n.getProtocol(pid);
-			if (next == null
-					|| diff(nDHT.getLocation(), m.getTarget()) < diff(
-							nextDHT.getLocation(), m.getTarget())) {
-				next = n;
-				nextDHT = (DHTProtocol) next.getProtocol(pid);
-			}
-		}
+    /**
+     * Replicate this object by returning an identical copy.<br>
+     * It is called by the initializer and do not fill any particular field.
+     *
+     * @return Object
+     */
+    public Object clone() {
+        DHTProtocol dolly = new DHTProtocol(this.prefix);
+        return dolly;
+    }
 
-		transport.send(node, next, m, pid);
-	}
+    @Override
+    public String toString() {
+        return String.format("DHT Location: %s", this.getAddress());
+    }
 
-	/**
-	 * Set the location of a node in the DHT.
-	 * 
-	 * @param location
-	 *            value between 0 and 1
-	 */
-	public void setLocation(double location) {
-		this.location = Math.abs(location) % 1.0;
-	}
+    private DHTRouter getRouter(){
+        if (this.router != null)
+            return this.router;
 
-	/**
-	 * @return location of the node
-	 */
-	public double getLocation() {
-		return this.location;
-	}
-	
-	/**
-	 * Store a given message.
-	 * @param message 
-	 * 			The message to store.
-	 */
-	public void storeMessage(DHTMessage message){
-		if(DHTProtocol.allMessages == null)
-			return;
-		
-		DHTProtocol.allMessages.add(message);
-	}
-	
-	/**
-	 * Called by controls to enable message storage.
-	 */
-	public void enableMessageStorage() {
-		DHTProtocol.allMessages = new LinkedList<DHTMessage>();
-	}
-
-	/**
-	 * Called by controls to get all stored messages.
-	 * @return List of all messages stored. Null if storage not enabled.
-	 */
-	public List<DHTMessage> getAllMessages() {
-		return DHTProtocol.allMessages;
-	}
-
-	/**
-	 * Clears all stored messages.
-	 */
-	public void clearMessages() {
-		DHTProtocol.allMessages.clear();
-	}
-
-	/**
-	 * Replicate this object by returning an identical copy.<br>
-	 * It is called by the initializer and do not fill any particular field.
-	 * 
-	 * @return Object
-	 */
-	public Object clone() {
-		DHTProtocol dolly = new DHTProtocol(this.prefix);
-		return dolly;
-	}
-
-	@Override
-	public String toString() {
-		return String.format("DHT Location: %f", this.getLocation());
-	}
-
+        try {
+            // Load the configured routing protocol
+            this.router =  (DHTRouter) Configuration.getInstance(this.prefix + "."
+                    + PAR_ROUTER, new DHTRouterGreedy(""));
+        } catch (Exception e) {
+            System.err.println(String.format(
+                    "Error loading a routing protocol: %s", e.getMessage()));
+            System.exit(5); // abort
+        }
+        return this.router;
+    }
 }

@@ -1,6 +1,6 @@
 package peersim.dht.message;
 
-import peersim.dht.loopDetection.LoopDetection;
+import peersim.dht.utils.Address;
 
 /**
  * Sends a 
@@ -10,8 +10,8 @@ import peersim.dht.loopDetection.LoopDetection;
 public class OneWayPingMessage extends DHTMessage {
 
 
-	public OneWayPingMessage(LoopDetection loopDetection, double targetLocation) {
-		super(loopDetection, targetLocation);
+	public OneWayPingMessage(Address targetAddress) {
+		super(targetAddress);
 	}
 }
 

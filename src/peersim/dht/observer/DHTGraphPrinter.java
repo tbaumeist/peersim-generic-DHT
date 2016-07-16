@@ -107,8 +107,8 @@ public class DHTGraphPrinter extends GraphObserver {
 			DHTProtocol dhtNode = (DHTProtocol) n.getProtocol(this.did);
 			out.println("node [");
 			out.println("\tid " + n.getID());
-			out.println("\tlabel \"" + dhtNode.getLocation() + "\"");
-			out.println("\tlocation " + dhtNode.getLocation());
+			out.println("\tlabel \"" + dhtNode.getAddress() + "\"");
+			out.println("\tlocation " + dhtNode.getAddress());
 			out.println("]");
 		}
 

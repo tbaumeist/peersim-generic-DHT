@@ -26,16 +26,10 @@ public class GUIDLoopDetection implements Protocol, LoopDetection {
 	}
 
 	@Override
-	public boolean addVistedNode(Node node) {
+	public boolean addVisitedNode(Node node) {
 		if( this.alreadyRouted.contains(node))
 			return false;
 		this.alreadyRouted.add(node);
 		return true;
 	}
-
-	@Override
-	public boolean canRouteNode(Node node) {
-		return true;
-	}
-
 }

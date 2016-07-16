@@ -7,7 +7,7 @@ import java.io.PrintStream;
 
 import peersim.config.Configuration;
 import peersim.core.Network;
-import peersim.dht.DHTControl;
+import peersim.dht.utils.DHTControl;
 import peersim.dht.DHTProtocol;
 import peersim.util.FileNameGenerator;
 
@@ -78,11 +78,5 @@ public abstract class DHTPrinter extends DHTControl{
 	}
 	
 	protected abstract void writeData(PrintStream out);
-	
-	protected DHTProtocol getDHTProtocol(){
-		if(Network.size() < 1)
-			throw new RuntimeException("Network has no nodes");
-		return (DHTProtocol) Network.get(0).getProtocol(this.pid);
-	}
 
 }
