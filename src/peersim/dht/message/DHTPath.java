@@ -23,4 +23,12 @@ public class DHTPath extends LinkedList<Node> {
 			return null;
 		return this.get(this.getPathLength() - 1);
 	}
+
+	public DHTPath reverse(){
+		DHTPath path = new DHTPath();
+		for(Node n : this){
+			path.add(0,n);
+		}
+		return path;
+	}
 }

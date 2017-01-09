@@ -3,8 +3,13 @@ package peersim.dht.router;
 import peersim.config.Configuration;
 import peersim.core.Node;
 import peersim.core.Protocol;
+import peersim.dht.DHTProtocol;
 import peersim.dht.loopDetection.GUIDLoopDetection;
 import peersim.dht.loopDetection.LoopDetection;
+import peersim.dht.message.DHTMessage;
+import peersim.dht.message.DHTMessageAction;
+import peersim.dht.observer.store.DHTFileStore;
+import peersim.transport.Transport;
 
 public abstract class DHTRouter implements Protocol {
 
@@ -16,7 +21,7 @@ public abstract class DHTRouter implements Protocol {
      *
      * @config
      */
-    private static final String PAR_LOOP = "loop";
+    protected static final String PAR_LOOP = "loop_detection";
 
     /**
      * The {@value #PAR_BACK} configuration parameter defines if
@@ -26,19 +31,102 @@ public abstract class DHTRouter implements Protocol {
      *
      * @config
      */
-    private static final String PAR_BACK = "backtrack";
+    protected static final String PAR_BACK = "can_backtrack";
+    //TODO: Move backtracking into its own object
+
+    /**
+     * The {@value #PAR_STORE} configuration parameter defines the file the router will store any routing data.
+     * class.
+     *
+     * @config
+     */
+    protected static final String PAR_STORE = "route_store_file";
+
 
     protected final String prefix;
     protected final Boolean canBackTrack;
+    protected final DHTFileStore dhtFileStore;
 
     private LoopDetection loop = null;
 
     public DHTRouter(String prefix) {
         this.prefix = prefix;
-        this.canBackTrack = Configuration.getBoolean(prefix+"."+PAR_BACK, true);
+        this.canBackTrack = Configuration.getBoolean(prefix + "." + PAR_BACK, true);
+        String dataStoreFileName = Configuration.getString(this.prefix + "." + PAR_STORE, null);
+        DHTFileStore store = null;
+        if (dataStoreFileName != null) {
+            try {
+                store = DHTFileStore.getInstance(dataStoreFileName);
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.exit(1);
+            }
+        }
+        this.dhtFileStore = store;
     }
 
-    public abstract void route(Node node, int pid, int transportPid, int linkPid, Object event);
+    /**
+     * Write persistent data to the file storage.
+     */
+    protected void storeRouteData(DHTMessage message) {
+        if (this.dhtFileStore != null)
+            this.dhtFileStore.storeData(message);
+    }
+
+    protected abstract void routeNextNode(Node node, int pid, int transportPid, int linkPid, DHTMessage message);
+
+    protected void sendBacktrack(Node node, int pid, int transportPid, int linkPid, DHTMessage message, Node previous){
+        Transport transport = (Transport) node.getProtocol(transportPid);
+        if(this.canBackTrack){
+            if (message.prepareToBacktrack()) {
+                message.setMessageStatus(DHTMessage.MessageStatus.BACKTRACKED);
+                transport.send(node, previous, message, pid);
+            } else {
+                message.setMessageStatus(DHTMessage.MessageStatus.FAILED);
+                this.storeRouteData(message);
+            }
+        } else {
+            message.setMessageStatus(DHTMessage.MessageStatus.FAILED);
+            this.storeRouteData(message);
+        }
+    }
+
+    public void route(Node node, int pid, int transportPid, int linkPid, Object event) {
+        DHTMessage message = (DHTMessage) event;
+        DHTProtocol currentNode = (DHTProtocol) node.getProtocol(pid);
+        Transport transport = (Transport) node.getProtocol(transportPid);
+
+        // Add node to the messages visited list
+        message.arrivedAt(node);
+
+        // Check if this message was backtracked to this node
+        if (message.getMessageStatus() == DHTMessage.MessageStatus.BACKTRACKED) {
+            message.setMessageStatus(DHTMessage.MessageStatus.FORWARDED);
+            routeNextNode(node, pid, transportPid, linkPid, message);
+            return;
+        }
+
+        // final destination, no not the movie
+        if (currentNode.getAddress().equals(message.getTarget())) {
+            message.setMessageStatus(DHTMessage.MessageStatus.DELIVERED);
+            this.storeRouteData(message);
+
+            DHTMessageAction action = message.onDelivered(pid);
+            if(action != null) // this generates another message?
+                transport.send(node, action.getNextNode(), action.getMessage(), pid);
+            return; // reached target
+        }
+
+        // run loop detection
+        if (this.getLoopDetection().checkVisitedNode(node, message)) {
+            // already visited
+            this.sendBacktrack(node, pid, transportPid, linkPid, message, message.getPreviousNode());
+            return; // either backtracked or we are done
+        }
+
+        message.setMessageStatus(DHTMessage.MessageStatus.FORWARDED);
+        routeNextNode(node, pid, transportPid, linkPid, message);
+    }
 
     /**
      * Replicate this object by returning an identical copy.<br>
@@ -48,8 +136,8 @@ public abstract class DHTRouter implements Protocol {
      */
     public abstract Object clone();
 
-    protected LoopDetection getLoopDetection(){
-        if(this.loop != null)
+    protected LoopDetection getLoopDetection() {
+        if (this.loop != null)
             return this.loop;
 
         try {
@@ -60,7 +148,8 @@ public abstract class DHTRouter implements Protocol {
         } catch (Exception e) {
             System.err.println(String.format(
                     "Error loading a loop protocol: %s", e.getMessage()));
-            System.exit(6); // abort
+            e.printStackTrace();
+            System.exit(1); // abort
         }
         return this.loop;
     }

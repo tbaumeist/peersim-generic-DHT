@@ -3,7 +3,15 @@ package peersim.dht.message;
 import peersim.core.Node;
 import peersim.dht.utils.Address;
 
-public class DHTMessage {
+import java.util.Hashtable;
+import java.util.List;
+
+/**
+ * Used to represent a message being sent. The message class also contains all "state" information for nodes.
+ * This is done to reduce the data stored at each node and having to deal with purging the data when it is no
+ * longer needed.
+ */
+public abstract class DHTMessage {
 
     /**
      * Stores the last used message ID. It is incremented every time a new
@@ -12,11 +20,20 @@ public class DHTMessage {
     private static long MESSAGE_COUNTER = 0;
     private static Object MESSAGE_LOCK = new Object();
 
-    private boolean delivered = false;
-    private final long messageID;
-    private final Address targetAddress;
-    private DHTPath routingPath = new DHTPath();
-    private DHTPath connectionPath = new DHTPath();
+    protected final long messageID;
+    protected final Address targetAddress;
+    protected DHTPath routingPath = new DHTPath();
+    protected DHTPath connectionPath = new DHTPath();
+    protected Hashtable<Node, Object> routingState = new Hashtable<>();
+    protected MessageStatus messageStatus = MessageStatus.UNKNOWN;
+
+    public enum MessageStatus{
+        FORWARDED,
+        BACKTRACKED,
+        FAILED,
+        DELIVERED,
+        UNKNOWN
+    }
 
     public DHTMessage(Address target) {
         // Make setting the message ID thread safe.
@@ -35,6 +52,10 @@ public class DHTMessage {
         return this.targetAddress;
     }
 
+    public MessageStatus getMessageStatus(){ return this.messageStatus;}
+
+    public void setMessageStatus(MessageStatus status){ this.messageStatus = status;}
+
     /**
      * @return ID of the message.
      */
@@ -43,17 +64,20 @@ public class DHTMessage {
     }
 
     /**
-     * Called when a message successfully reaches its destination node.
+     * @return The next action or message to send. Return null if there is no further action.
      */
-    public void setDelivered() {
-        this.delivered = true;
-    }
+    public abstract DHTMessageAction onDelivered(int pid);
+
+    /**
+     * @return The next action or message to send. Return null if there is no further action.
+     */
+    public abstract DHTMessageAction onFailure(int pid);
 
     /**
      * @return True is message reached its destination, otherwise False.
      */
-    public boolean getDelivered() {
-        return this.delivered;
+    public boolean wasDelivered() {
+        return this.messageStatus == MessageStatus.DELIVERED;
     }
 
     /**
@@ -96,12 +120,12 @@ public class DHTMessage {
      * Called to notify a message that it has been routed to a node.
      *
      * @param node Node the arrivedAt the message.
-     * @return False if the node can't process the message and True if its OK
-     * for the node to process the message.
      */
     public void arrivedAt(Node node) {
         this.routingPath.add(node);
-        this.connectionPath.add(node);
+        // Don't add to connection path if it is already the last node (backtracking)
+        if(this.connectionPath.isEmpty() || !node.equals(this.connectionPath.getLast()))
+            this.connectionPath.add(node);
     }
 
     /**
@@ -111,12 +135,34 @@ public class DHTMessage {
      * @return True if backtracking was successful and False if there is no
      * place to backtrack to (e.g. at the source node).
      */
-    public boolean backtrack() {
-        if (this.connectionPath.getPathLength() < 1)
+    public boolean prepareToBacktrack() {
+        if (this.connectionPath.getPathLength() <= 0)
             return false;
-        // remove the last two nodes added
-        this.connectionPath.removeLast();
+        // remove the last node added
         this.connectionPath.removeLast();
         return true;
+    }
+
+    public String buildPathString(List<Node> path) {
+        StringBuilder b = new StringBuilder();
+        for (Node n : path) {
+            b.append(n.getID());
+            b.append(">");
+        }
+        if (b.length() < 1)
+            return "";
+        return b.substring(0, b.length() - 1);
+    }
+
+    public void saveRoutingState(Node n, Object state){
+        this.routingState.put(n, state);
+    }
+
+    public boolean hasRoutingState(Node n){ return this.routingState.containsKey(n); }
+
+    public Object getRoutingState(Node n){
+        if(this.hasRoutingState(n))
+            return this.routingState.get(n);
+        return null;
     }
 }

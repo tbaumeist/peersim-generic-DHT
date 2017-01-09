@@ -1,17 +1,20 @@
 package peersim.dht.loopDetection;
 
+import peersim.core.Node;
+import peersim.core.Protocol;
+import peersim.dht.message.DHTMessage;
+import peersim.dht.message.DHTPath;
+
 import java.util.LinkedList;
 import java.util.List;
 
-import peersim.core.Node;
-import peersim.core.Protocol;
-
-public class GUIDLoopDetection implements Protocol, LoopDetection {
-	private final String prefix;
-	private List<Node> alreadyRouted = new LinkedList<Node>();
+/**
+ *
+ */
+public class GUIDLoopDetection extends LoopDetection implements Protocol{
 	
 	public GUIDLoopDetection(String prefix) {
-		this.prefix = prefix;
+		super(prefix);
 	}
 	
 	/**
@@ -26,10 +29,10 @@ public class GUIDLoopDetection implements Protocol, LoopDetection {
 	}
 
 	@Override
-	public boolean addVisitedNode(Node node) {
-		if( this.alreadyRouted.contains(node))
-			return false;
-		this.alreadyRouted.add(node);
-		return true;
+	public boolean checkVisitedNode(Node node, DHTMessage message) {
+		DHTPath path = message.getRoutingPath();
+		// ignore the last entry in the routing path
+		List<Node> visited = path.size() > 0? path.subList(0, path.size()-1): new LinkedList<>();
+		return visited.contains(node);
 	}
 }
