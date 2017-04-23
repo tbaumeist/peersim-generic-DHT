@@ -34,7 +34,7 @@ public class RandomPingPongTraffic extends DHTControl {
 		} while (sender == null || sender.isUp() == false || target == null
 				|| target.isUp() == false);
 		DHTProtocol targetProtocol = (DHTProtocol) target.getProtocol(this.pid);
-		GreedyPingMessage message = new GreedyPingMessage(targetProtocol.getAddress());
+		PingMessage message = new PingMessage(targetProtocol.getAddress());
 		EDSimulator.add(10, message, sender, this.pid);
 		return false;
 	}

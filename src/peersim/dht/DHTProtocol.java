@@ -4,8 +4,6 @@ import peersim.config.Configuration;
 import peersim.core.CommonState;
 import peersim.core.Node;
 import peersim.dht.router.DHTRouter;
-import peersim.dht.router.DHTRouterCircuit;
-import peersim.dht.router.DHTRouterGreedy;
 import peersim.dht.utils.Address;
 import peersim.edsim.EDProtocol;
 

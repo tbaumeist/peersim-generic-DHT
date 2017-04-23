@@ -4,7 +4,7 @@ import peersim.core.CommonState;
 import peersim.core.Network;
 import peersim.core.Node;
 import peersim.dht.DHTProtocol;
-import peersim.dht.message.GreedyPingMessage;
+import peersim.dht.message.PingOnlyMessage;
 import peersim.dht.DHTControl;
 import peersim.edsim.EDSimulator;
 
@@ -34,7 +34,7 @@ public class RandomPingTraffic extends DHTControl {
 		} while (sender == null || sender.isUp() == false || target == null
 				|| target.isUp() == false);
 		DHTProtocol targetProtocol = (DHTProtocol) target.getProtocol(pid);
-		GreedyPingMessage message = new GreedyPingMessage(targetProtocol.getAddress());
+		PingOnlyMessage message = new PingOnlyMessage(targetProtocol.getAddress());
 		EDSimulator.add(10, message, sender, pid);
 		return false;
 	}

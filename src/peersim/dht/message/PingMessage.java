@@ -8,24 +8,23 @@ import peersim.dht.utils.Address;
  * @author todd
  *
  */
-public class GreedyPingMessage extends DHTMessage {
+public class PingMessage extends DHTMessage {
 
 
-	public GreedyPingMessage(Address targetAddress) {
+	public PingMessage(Address targetAddress) {
 		super(targetAddress);
 	}
 
 	@Override
-	public DHTMessageAction onDelivered(int pid) {
+	public DHTMessage onDelivered(int pid) {
 		DHTPath path = this.getConnectionPath();
 		DHTProtocol targetProtocol = (DHTProtocol) path.getSource().getProtocol(pid);
 
-		return new DHTMessageAction(this.getDestinationNode(),
-				new CircuitPongMessage(path, targetProtocol.getAddress()));
+		return new PongMessage(this, targetProtocol.getAddress());
 	}
 
 	@Override
-	public DHTMessageAction onFailure(int pid) {
+	public DHTMessage onFailure(int pid) {
 		return null;
 	}
 }

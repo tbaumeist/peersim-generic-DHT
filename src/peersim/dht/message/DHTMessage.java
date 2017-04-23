@@ -21,6 +21,7 @@ public abstract class DHTMessage {
     private static Object MESSAGE_LOCK = new Object();
 
     protected final long messageID;
+    protected final long refMessageID;
     protected final Address targetAddress;
     protected DHTPath routingPath = new DHTPath();
     protected DHTPath connectionPath = new DHTPath();
@@ -32,16 +33,21 @@ public abstract class DHTMessage {
         BACKTRACKED,
         FAILED,
         DELIVERED,
+        RETURN_TO_SENDER,
         UNKNOWN
     }
 
-    public DHTMessage(Address target) {
+    public DHTMessage(Address target){
+        this(target, 0);
+    }
+
+    public DHTMessage(Address target, long refMessageID) {
         // Make setting the message ID thread safe.
         synchronized (DHTMessage.MESSAGE_LOCK) {
             DHTMessage.MESSAGE_COUNTER++;
             this.messageID = DHTMessage.MESSAGE_COUNTER;
         }
-
+        this.refMessageID = refMessageID;
         this.targetAddress = target;
     }
 
@@ -64,14 +70,21 @@ public abstract class DHTMessage {
     }
 
     /**
-     * @return The next action or message to send. Return null if there is no further action.
+     * @return ID of the message referenced by this message
      */
-    public abstract DHTMessageAction onDelivered(int pid);
+    public long getRefMessageID() {
+        return this.refMessageID;
+    }
 
     /**
      * @return The next action or message to send. Return null if there is no further action.
      */
-    public abstract DHTMessageAction onFailure(int pid);
+    public abstract DHTMessage onDelivered(int pid);
+
+    /**
+     * @return The next action or message to send. Return null if there is no further action.
+     */
+    public abstract DHTMessage onFailure(int pid);
 
     /**
      * @return True is message reached its destination, otherwise False.

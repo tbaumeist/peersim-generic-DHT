@@ -16,7 +16,7 @@ import java.util.logging.*;
 public class DHTFileStore {
 
     private final Logger logger;
-    private final String outFormat = "%d,%d,%d,%s,%s,%b,%d,%d,%s,%s\n";
+    private final String outFormat = "%d,%d,%d,%d,%s,%s,%b,%d,%d,%s,%s\n";
 
     private static DHTFileStore instance = null;
 
@@ -40,12 +40,12 @@ public class DHTFileStore {
         CustomRecordFormatter formatter = new CustomRecordFormatter();
         fh.setFormatter(formatter);
 
-        this.logger.info("ID,Source,Destination,Target,Type,Delivered,Search_Path_Length,Connection_Path_Length,Search_Path,Connection_Path\n");
+        this.logger.info("ID,Ref_ID,Source,Destination,Target,Type,Delivered,Search_Path_Length,Connection_Path_Length,Search_Path,Connection_Path\n");
     }
 
     public void storeData(DHTMessage m){
         // Dump the message
-        this.logger.info(String.format(this.outFormat, m.getMessageID(),
+        this.logger.info(String.format(this.outFormat, m.getMessageID(), m.getRefMessageID(),
                     m.getSourceNode().getID(), m.getDestinationNode().getID(),
                     m.getTarget(), m.getClass().toString(), m.wasDelivered(),
                     m.getRoutingPath().getPathLength(), m.getConnectionPath().getPathLength(),
