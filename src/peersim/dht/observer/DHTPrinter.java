@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 
 import peersim.config.Configuration;
-import peersim.dht.DHTControl;
+import peersim.dht.utils.DHTControl;
 import peersim.util.FileNameGenerator;
 
 /**

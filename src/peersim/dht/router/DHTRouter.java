@@ -8,7 +8,7 @@ import peersim.dht.DHTProtocol;
 import peersim.dht.loopDetection.GUIDLoopDetection;
 import peersim.dht.loopDetection.LoopDetection;
 import peersim.dht.message.DHTMessage;
-import peersim.dht.observer.store.DHTFileStore;
+import peersim.dht.observer.store.DHTRoutingDataStore;
 import peersim.transport.Transport;
 
 public abstract class DHTRouter implements Protocol {
@@ -40,12 +40,12 @@ public abstract class DHTRouter implements Protocol {
      *
      * @config
      */
-    protected static final String PAR_STORE = "route_store_file";
+    protected static final String PAR_STORE = "route_storage_file";
 
 
     protected final String prefix;
     protected final Boolean canBackTrack;
-    protected final DHTFileStore dhtFileStore;
+    protected final DHTRoutingDataStore dhtFileStore;
 
     private LoopDetection loop = null;
 
@@ -53,10 +53,10 @@ public abstract class DHTRouter implements Protocol {
         this.prefix = prefix;
         this.canBackTrack = Configuration.getBoolean(prefix + "." + PAR_BACK, true);
         String dataStoreFileName = Configuration.getString(this.prefix + "." + PAR_STORE, null);
-        DHTFileStore store = null;
+        DHTRoutingDataStore store = null;
         if (dataStoreFileName != null) {
             try {
-                store = DHTFileStore.getInstance(dataStoreFileName);
+                store = DHTRoutingDataStore.getInstance(dataStoreFileName);
             } catch (Exception e) {
                 e.printStackTrace();
                 System.exit(1);

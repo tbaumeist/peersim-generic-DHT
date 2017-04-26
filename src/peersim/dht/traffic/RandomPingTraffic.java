@@ -5,7 +5,7 @@ import peersim.core.Network;
 import peersim.core.Node;
 import peersim.dht.DHTProtocol;
 import peersim.dht.message.PingOnlyMessage;
-import peersim.dht.DHTControl;
+import peersim.dht.utils.DHTControl;
 import peersim.edsim.EDSimulator;
 
 /**

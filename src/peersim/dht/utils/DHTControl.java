@@ -1,4 +1,4 @@
-package peersim.dht;
+package peersim.dht.utils;
 
 import peersim.config.Configuration;
 import peersim.core.Control;

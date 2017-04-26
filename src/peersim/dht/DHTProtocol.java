@@ -4,6 +4,7 @@ import peersim.config.Configuration;
 import peersim.core.CommonState;
 import peersim.core.Node;
 import peersim.dht.router.DHTRouter;
+import peersim.dht.router.DHTRouterGreedy;
 import peersim.dht.utils.Address;
 import peersim.edsim.EDProtocol;
 
@@ -26,23 +27,17 @@ public class DHTProtocol implements EDProtocol, Cloneable {
     private static final String PAR_TRANS = "transport";
 
     /**
-     * The {@value #PAR_ROUTE_GREEDY} configuration parameter defines which greedy routing protocol
-     * is used to transport the messages (ie the connections between peers).
+     * The {@value #PAR_ROUTER} configuration parameter defines which routing protocol
+     * the simulator should use: defaults to the {@link peersim.dht.router.DHTRouterGreedy}
+     * class.
      *
      * @config
      */
-    private static final String PAR_ROUTE_GREEDY = "greedy_router";
-
-    /**
-     * The {@value #PAR_ROUTE_CIRCUIT} configuration parameter defines which circuit routing protocol
-     * is used to transport the messages (ie the connections between peers).
-     *
-     * @config
-     */
-    private static final String PAR_ROUTE_CIRCUIT = "circuit_router";
+    private static final String PAR_ROUTER = "router";
 
     private final String prefix;
-    private final int linkPid, transportPid, routerGreedyPid, routerCircuitPid;
+    private final int linkPid, transportPid;
+    private DHTRouter router = null;
 
     private Address address = null;
 
@@ -50,23 +45,12 @@ public class DHTProtocol implements EDProtocol, Cloneable {
         this.prefix = prefix;
         this.linkPid = Configuration.getPid(prefix + "." + PAR_LINK);
         this.transportPid = Configuration.getPid(prefix + "." + PAR_TRANS);
-        this.routerGreedyPid = Configuration.getPid(prefix + "." + PAR_ROUTE_GREEDY);
-        this.routerCircuitPid = Configuration.getPid(prefix + "." + PAR_ROUTE_CIRCUIT);
         this.address = new Address(CommonState.r.nextDouble());
     }
 
     @Override
     public void processEvent(Node node, int pid, Object event) {
-        String messageType = event.getClass().toString().toLowerCase();
-
-        if(messageType.contains("greedy")) {
-            ((DHTRouter) node.getProtocol(this.routerGreedyPid)).route(node, pid, this.transportPid, this.linkPid, event);
-        } else if(messageType.contains("circuit")) {
-            ((DHTRouter) node.getProtocol(this.routerCircuitPid)).route(node, pid, this.transportPid, this.linkPid, event);
-        } else{
-            System.err.println("Unknown message type");
-            System.exit(1);
-        }
+        this.getRouter(node).route(node, pid, this.transportPid, this.linkPid, event);
     }
 
     /**
@@ -84,6 +68,23 @@ public class DHTProtocol implements EDProtocol, Cloneable {
      */
     public Address getAddress() {
         return this.address;
+    }
+
+
+    private DHTRouter getRouter(Node node){
+        if (this.router != null)
+            return this.router;
+        try {
+            // Load the configured routing protocol
+            if(Configuration.contains(this.prefix + "." + PAR_ROUTER))
+                this.router = (DHTRouter)node.getProtocol(Configuration.getPid(prefix + "." + PAR_ROUTER));
+            else
+                this.router = new DHTRouterGreedy("");
+        } catch (Exception e) {
+            System.err.println(String.format("Error loading a routing protocol: %s", e.getMessage()));
+            System.exit(5); // abort
+        }
+        return this.router;
     }
 
     /**
