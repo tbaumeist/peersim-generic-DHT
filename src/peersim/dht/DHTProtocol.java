@@ -3,6 +3,8 @@ package peersim.dht;
 import peersim.config.Configuration;
 import peersim.core.CommonState;
 import peersim.core.Node;
+import peersim.dht.lookup.DHTLookupTable;
+import peersim.dht.lookup.NHopLookupTable;
 import peersim.dht.router.DHTRouter;
 import peersim.dht.router.DHTRouterGreedy;
 import peersim.dht.utils.Address;
@@ -16,7 +18,7 @@ public class DHTProtocol implements EDProtocol, Cloneable {
      *
      * @config
      */
-    private static final String PAR_LINK = "linkable";
+    private static final String PAR_LINK = "topology";
 
     /**
      * The {@value #PAR_TRANS} configuration parameter defines which protocol
@@ -35,9 +37,19 @@ public class DHTProtocol implements EDProtocol, Cloneable {
      */
     private static final String PAR_ROUTER = "router";
 
+    /**
+     * The {@value #PAR_LOOKUP_TABLE} configuration parameter defines which lookup table protocol
+     * the simulator should use: defaults to the {@link peersim.dht.lookup.NHopLookupTable}
+     * class.
+     *
+     * @config
+     */
+    private static final String PAR_LOOKUP_TABLE = "lookup_table";
+
     private final String prefix;
     private final int linkPid, transportPid;
     private DHTRouter router = null;
+    private DHTLookupTable lookupTable = null;
 
     private Address address = null;
 
@@ -50,7 +62,7 @@ public class DHTProtocol implements EDProtocol, Cloneable {
 
     @Override
     public void processEvent(Node node, int pid, Object event) {
-        this.getRouter(node).route(node, pid, this.transportPid, this.linkPid, event);
+        this.getRouter(node).route(this.getLookupTable(node), node, pid, this.transportPid, this.linkPid, event);
     }
 
     /**
@@ -85,6 +97,22 @@ public class DHTProtocol implements EDProtocol, Cloneable {
             System.exit(5); // abort
         }
         return this.router;
+    }
+
+    private DHTLookupTable getLookupTable(Node node){
+        if (this.lookupTable != null)
+            return this.lookupTable;
+        try {
+            // Load the configured routing protocol
+            if(Configuration.contains(this.prefix + "." + PAR_LOOKUP_TABLE))
+                this.lookupTable = (DHTLookupTable) node.getProtocol(Configuration.getPid(prefix + "." + PAR_LOOKUP_TABLE));
+            else
+                this.lookupTable = new NHopLookupTable("");
+        } catch (Exception e) {
+            System.err.println(String.format("Error loading a lookup protocol: %s", e.getMessage()));
+            System.exit(5); // abort
+        }
+        return this.lookupTable;
     }
 
     /**

@@ -9,7 +9,7 @@ Class Path: add contents of /lib
 ## Notes
 
 DHTProtocol
- - linkable - peer connection. Topology
+ - topology - linkable peer connection. Topology
  - transport - connections used for communications
  - address = node location
  - router - processes messages and routes to next node
@@ -20,3 +20,9 @@ DHTProtocol
 TODO
  - Add address table to DHTProtocol, gets passed to router
  - Add topology generation controllers
+    - Random topologies - have maybe
+    - Small world - need
+    - Structured - need
+ - Churn
+ - Random message failure
+ - anonymity metric - hard

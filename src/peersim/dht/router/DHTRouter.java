@@ -5,6 +5,7 @@ import peersim.core.Linkable;
 import peersim.core.Node;
 import peersim.core.Protocol;
 import peersim.dht.DHTProtocol;
+import peersim.dht.lookup.DHTLookupTable;
 import peersim.dht.loopDetection.GUIDLoopDetection;
 import peersim.dht.loopDetection.LoopDetection;
 import peersim.dht.message.DHTMessage;
@@ -73,16 +74,16 @@ public abstract class DHTRouter implements Protocol {
             this.dhtFileStore.storeData(message);
     }
 
-    protected abstract void routeNextNode(Node node, int pid, int transportPid, int linkPid, DHTMessage message);
+    protected abstract void routeNextNode(DHTLookupTable lookupTable, Node node, int pid, int transportPid, int linkPid, DHTMessage message);
 
-    protected void routeReplyNextNode(Node node, int pid, int transportPid, int linkPid, DHTMessage message) {
+    protected void routeReplyNextNode(DHTLookupTable lookupTable, Node node, int pid, int transportPid, int linkPid, DHTMessage message) {
         Transport transport = (Transport) node.getProtocol(transportPid);
         Linkable linkable = (Linkable) node.getProtocol(linkPid);
 
         Node next = (Node)message.getRoutingState(node);
 
         //check the next node can be routed to
-        if(!this.hasNodeNeighbor(linkable, next)){
+        if(!lookupTable.isDirectNeighbor(linkable, next)){
             message.setMessageStatus(DHTMessage.MessageStatus.FAILED);
             this.storeRouteData(message);
             return; // can't route back to home, because circuit was broken
@@ -106,7 +107,7 @@ public abstract class DHTRouter implements Protocol {
         }
     }
 
-    public void route(Node node, int pid, int transportPid, int linkPid, Object event) {
+    public void route(DHTLookupTable lookupTable, Node node, int pid, int transportPid, int linkPid, Object event) {
         DHTMessage message = (DHTMessage) event;
         DHTProtocol currentNode = (DHTProtocol) node.getProtocol(pid);
 
@@ -116,7 +117,7 @@ public abstract class DHTRouter implements Protocol {
         // Check if this message was backtracked to this node
         if (message.getMessageStatus() == DHTMessage.MessageStatus.BACKTRACKED) {
             message.setMessageStatus(DHTMessage.MessageStatus.FORWARDED);
-            routeNextNode(node, pid, transportPid, linkPid, message);
+            routeNextNode(lookupTable, node, pid, transportPid, linkPid, message);
             return;
         }
 
@@ -127,13 +128,13 @@ public abstract class DHTRouter implements Protocol {
 
             DHTMessage nextMessage = message.onDelivered(pid);
             if (nextMessage != null) // this generates another message?
-                route(node, pid, transportPid, linkPid, nextMessage); // call routing method
+                route(lookupTable, node, pid, transportPid, linkPid, nextMessage); // call routing method
             return; // reached target
         }
 
         // is this a reply message on a circuit path by default
         if (message.getMessageStatus() == DHTMessage.MessageStatus.RETURN_TO_SENDER) {
-            routeReplyNextNode(node, pid, transportPid, linkPid, message);
+            routeReplyNextNode(lookupTable, node, pid, transportPid, linkPid, message);
             return;
         }
 
@@ -145,7 +146,7 @@ public abstract class DHTRouter implements Protocol {
         }
 
         message.setMessageStatus(DHTMessage.MessageStatus.FORWARDED);
-        routeNextNode(node, pid, transportPid, linkPid, message);
+        routeNextNode(lookupTable, node, pid, transportPid, linkPid, message);
     }
 
     /**
@@ -172,14 +173,5 @@ public abstract class DHTRouter implements Protocol {
             System.exit(1); // abort
         }
         return this.loop;
-    }
-
-    protected boolean hasNodeNeighbor(Linkable linkable, Node node){
-        for (int i = 0; i < linkable.degree(); i++) {
-            Node n = linkable.getNeighbor(i);
-            if (n.equals(node))
-                return true;
-        }
-        return false;
     }
 }
