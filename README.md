@@ -12,6 +12,7 @@ DHTProtocol
  - topology - linkable peer connection. Topology
  - transport - connections used for communications
  - address = node location
+ - routing_table - How the protocol lookups up possible routing paths
  - router - processes messages and routes to next node
    - loop_detection = how loops are detected
    - can_backtrack

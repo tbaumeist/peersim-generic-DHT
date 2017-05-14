@@ -2,10 +2,9 @@ package peersim.dht.router;
 
 import peersim.config.Configuration;
 import peersim.core.CommonState;
-import peersim.core.Linkable;
 import peersim.core.Node;
 import peersim.dht.DHTProtocol;
-import peersim.dht.lookup.DHTLookupTable;
+import peersim.dht.lookup.DHTRoutingTable;
 import peersim.dht.message.DHTMessage;
 import peersim.dht.utils.Address;
 import peersim.transport.Transport;
@@ -47,7 +46,7 @@ public class DHTRouterGreedy extends DHTRouter {
     }
 
     @Override
-    protected void routeNextNode(DHTLookupTable lookupTable, Node node, int pid, int transportPid, int linkPid, DHTMessage message){
+    protected void routeNextNode(DHTRoutingTable routingTable, Node node, int pid, int transportPid, int linkPid, DHTMessage message){
         //  Is this the first time this node has handled this message/
         if(!message.hasRoutingState(node)) {
             // Should we do random routing here?
@@ -61,9 +60,9 @@ public class DHTRouterGreedy extends DHTRouter {
         // Two routing modes, random and greedy
         Node next = null;
         if(state.isRandomRouting()) {
-            next = this.getRandomNode(lookupTable, node, linkPid, state.getPrevious(), state.getRoutedTo());
+            next = this.getRandomNode(routingTable, node, linkPid, state.getPrevious(), state.getRoutedTo());
         } else {
-            next = this.getNextGreedyNode(lookupTable, node, linkPid, pid, message.getTarget(), state.getPrevious(),
+            next = this.getNextGreedyNode(routingTable, node, linkPid, pid, message.getTarget(), state.getPrevious(),
                     state.getRoutedTo());
         }
         this.sendNext(node, pid, transportPid, linkPid, message, next, state);
@@ -74,14 +73,14 @@ public class DHTRouterGreedy extends DHTRouter {
         return dolly;
     }
 
-    private Node getRandomNode(DHTLookupTable lookupTable, Node node, int linkPid, Node previous, Collection<Node> alreadyTried)
+    private Node getRandomNode(DHTRoutingTable routingTable, Node node, int linkPid, Node previous, Collection<Node> alreadyTried)
     {
-        List<DHTLookupTable.LookupEntry> lookups = lookupTable.getLookupEntries(node, linkPid);
+        List<DHTRoutingTable.LookupEntry> lookups = routingTable.getLookupEntries(node, linkPid);
 
         // randomly pick an entry from them lookup table
         while(lookups.size() > 0){
             int randomIndex = CommonState.r.nextInt(lookups.size());
-            DHTLookupTable.LookupEntry entry = lookups.get(randomIndex);
+            DHTRoutingTable.LookupEntry entry = lookups.get(randomIndex);
             lookups.remove(randomIndex);
 
             // check if we have already routed to the given entry
@@ -96,13 +95,13 @@ public class DHTRouterGreedy extends DHTRouter {
         return null;
     }
 
-    private Node getNextGreedyNode(DHTLookupTable lookupTable, Node node, int linkPid, int pid, Address target, Node previous,
+    private Node getNextGreedyNode(DHTRoutingTable routingTable, Node node, int linkPid, int pid, Address target, Node previous,
                                    Collection<Node> alreadyTried){
         Node next = null;  // stores next node to route to
         Address nextTargetAddress = null; // stores the target address used to compare entries
-        List<DHTLookupTable.LookupEntry> lookups = lookupTable.getLookupEntries(node, linkPid);
+        List<DHTRoutingTable.LookupEntry> lookups = routingTable.getLookupEntries(node, linkPid);
 
-        for (DHTLookupTable.LookupEntry entry : lookups) {
+        for (DHTRoutingTable.LookupEntry entry : lookups) {
             // check if we have already routed to the given entry
             if (entry.routeToNode.equals(node))
                 continue;

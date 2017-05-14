@@ -10,11 +10,11 @@ import java.util.List;
 /**
  * Created by baumeist on 5/13/17.
  */
-public abstract class DHTLookupTable implements Protocol {
+public abstract class DHTRoutingTable implements Protocol {
 
     protected final String prefix;
 
-    public DHTLookupTable(String prefix) {
+    public DHTRoutingTable(String prefix) {
         this.prefix = prefix;
     }
 

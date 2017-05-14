@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * Created by baumeist on 5/13/17.
  */
-public class NHopLookupTable extends DHTLookupTable{
+public class NHopRoutingTable extends DHTRoutingTable {
 
     /**
      * The {@value #PAR_HOPS} configuration parameter defines the
@@ -22,7 +22,7 @@ public class NHopLookupTable extends DHTLookupTable{
     private static final String PAR_HOPS = "hops";
     private final int hopCount;
 
-    public NHopLookupTable(String prefix) {
+    public NHopRoutingTable(String prefix) {
         super(prefix);
         this.hopCount = Configuration.getInt(prefix + "." + PAR_HOPS, 2);
         if(this.hopCount < 1){
@@ -38,7 +38,7 @@ public class NHopLookupTable extends DHTLookupTable{
     }
 
     public Object clone(){
-        return new NHopLookupTable(this.prefix);
+        return new NHopRoutingTable(this.prefix);
     }
 
     private void addLookupEntries(List<LookupEntry> entries, Node node, int linkPid, Node routeToNode,
