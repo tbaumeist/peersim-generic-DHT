@@ -10,7 +10,7 @@ import java.io.File;
  * Load a topology from a .GML file into a {@link peersim.core.Linkable} object. The links in the GML file will
  * be added to any links already present in the given topology.
  */
-public class LoadGML extends DHTControlWithProtocol {
+public class TopologyLoader extends DHTControlWithProtocol {
 
     /**
      * The {@value #PAR_TOPOLOGY} configuration parameter which references the
@@ -41,7 +41,7 @@ public class LoadGML extends DHTControlWithProtocol {
     /**
      * @param prefix Configuration prefix
      */
-    public LoadGML(String prefix){
+    public TopologyLoader(String prefix){
         super(prefix);
         this.topologyPid = Configuration.getPid(this.prefix + "." + PAR_TOPOLOGY);
         this.gmlFile = new File(Configuration.getString(this.prefix + "." + PAR_GML_FILE));
