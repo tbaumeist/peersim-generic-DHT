@@ -19,7 +19,6 @@ DHTProtocol
    - route_store_file
 
 TODO
- - Add address table to DHTProtocol, gets passed to router
  - Add topology generation controllers
     - Random topologies - have maybe
     - Small world - need

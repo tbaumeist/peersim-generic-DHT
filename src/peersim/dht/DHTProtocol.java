@@ -3,8 +3,8 @@ package peersim.dht;
 import peersim.config.Configuration;
 import peersim.core.CommonState;
 import peersim.core.Node;
-import peersim.dht.lookup.DHTRoutingTable;
-import peersim.dht.lookup.NHopRoutingTable;
+import peersim.dht.routingtable.DHTRoutingTable;
+import peersim.dht.routingtable.NHopRoutingTable;
 import peersim.dht.router.DHTRouter;
 import peersim.dht.router.DHTRouterGreedy;
 import peersim.dht.utils.Address;
@@ -109,7 +109,7 @@ public class DHTProtocol implements EDProtocol, Cloneable {
             else
                 this.routingTable = new NHopRoutingTable("");
         } catch (Exception e) {
-            System.err.println(String.format("Error loading a lookup protocol: %s", e.getMessage()));
+            System.err.println(String.format("Error loading a routingtable protocol: %s", e.getMessage()));
             System.exit(5); // abort
         }
         return this.routingTable;

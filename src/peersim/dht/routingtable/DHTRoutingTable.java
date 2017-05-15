@@ -1,9 +1,8 @@
-package peersim.dht.lookup;
+package peersim.dht.routingtable;
 
 import peersim.core.Linkable;
 import peersim.core.Node;
 import peersim.core.Protocol;
-import peersim.dht.utils.Address;
 
 import java.util.List;
 
@@ -27,20 +26,25 @@ public abstract class DHTRoutingTable implements Protocol {
         return false;
     }
 
-    public abstract List<LookupEntry> getLookupEntries(Node node, int linkPid);
+    public abstract List<RoutingTableEntry> getRoutingTableEntries(Node node, int linkPid);
 
     public abstract Object clone();
 
 
-    public class LookupEntry{
+    public class RoutingTableEntry {
 
         public final Node routeToNode, targetNode;
         public final int hopDistance;
 
-        public LookupEntry(Node routeTo, Node targetNode, int hopDistance){
+        public RoutingTableEntry(Node routeTo, Node targetNode, int hopDistance){
             this.routeToNode = routeTo;
             this.targetNode = targetNode;
             this.hopDistance = hopDistance;
+        }
+
+        @Override
+        public String toString(){
+            return String.format("(%d) %d -> %d", this.hopDistance, this.routeToNode.getID(), this.targetNode.getID());
         }
     }
 }

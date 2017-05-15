@@ -5,7 +5,7 @@ import peersim.core.Linkable;
 import peersim.core.Node;
 import peersim.core.Protocol;
 import peersim.dht.DHTProtocol;
-import peersim.dht.lookup.DHTRoutingTable;
+import peersim.dht.routingtable.DHTRoutingTable;
 import peersim.dht.loopDetection.GUIDLoopDetection;
 import peersim.dht.loopDetection.LoopDetection;
 import peersim.dht.message.DHTMessage;

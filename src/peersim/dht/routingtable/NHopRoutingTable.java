@@ -1,4 +1,4 @@
-package peersim.dht.lookup;
+package peersim.dht.routingtable;
 
 import peersim.config.Configuration;
 import peersim.core.Linkable;
@@ -14,7 +14,7 @@ public class NHopRoutingTable extends DHTRoutingTable {
 
     /**
      * The {@value #PAR_HOPS} configuration parameter defines the
-     * number of hops the lookup table will use for routing decisions.
+     * number of hops the routing table table will use for routing decisions.
      * Defaults to 2 hops.
      *
      * @config
@@ -31,9 +31,9 @@ public class NHopRoutingTable extends DHTRoutingTable {
         }
     }
 
-    public List<LookupEntry> getLookupEntries(Node node, int linkPid){
-        List<LookupEntry> entries = new LinkedList<>();
-        this.addLookupEntries(entries, node, linkPid, null, 1, this.hopCount);
+    public List<RoutingTableEntry> getRoutingTableEntries(Node node, int linkPid){
+        List<RoutingTableEntry> entries = new LinkedList<>();
+        this.addRoutingEntries(entries, node, linkPid, node, null, 1, this.hopCount);
         return entries;
     }
 
@@ -41,35 +41,41 @@ public class NHopRoutingTable extends DHTRoutingTable {
         return new NHopRoutingTable(this.prefix);
     }
 
-    private void addLookupEntries(List<LookupEntry> entries, Node node, int linkPid, Node routeToNode,
-                                  int currentHop, final int stopHop){
+    private void addRoutingEntries(List<RoutingTableEntry> entries, Node currentNode, int linkPid,
+                                   Node sourceNode, Node routeToNode,
+                                   int currentHop, final int stopHop){
         // stop!
         if( currentHop > stopHop )
             return;
 
         // get the direct neighbor links
-        Linkable linkable = (Linkable) node.getProtocol(linkPid);
+        Linkable linkable = (Linkable) currentNode.getProtocol(linkPid);
         for (int i = 0; i < linkable.degree(); i++) {
             Node n = linkable.getNeighbor(i);
+
+            // don't add your self to the list
+            if(n.equals(sourceNode))
+                continue;
+
             Node r = routeToNode;
             if( r == null)
                 r = n;
             if(this.addUniqueEntry(entries, r, n, currentHop)){
                 // added a new entry, depth first continue adding entries
-                this.addLookupEntries(entries, n, linkPid, r, currentHop++, stopHop);
+                this.addRoutingEntries(entries, n, linkPid, sourceNode, r, currentHop+1, stopHop);
             }
         }
     }
 
-    private boolean addUniqueEntry(List<LookupEntry> entries, Node routeToNode, Node targetNode, int hopDistance){
+    private boolean addUniqueEntry(List<RoutingTableEntry> entries, Node routeToNode, Node targetNode, int hopDistance){
         for(int i =0; i < entries.size(); i++){
-            LookupEntry e = entries.get(i);
+            RoutingTableEntry e = entries.get(i);
             // check if there is already an entry for target node through the same route to node
             if( e.targetNode.equals(targetNode) && e.routeToNode.equals(routeToNode)){
                 // replace entry if new entry is closer
                 if(e.hopDistance > hopDistance){
                     entries.remove(i);
-                    entries.add(new LookupEntry(routeToNode, targetNode, hopDistance));
+                    entries.add(new RoutingTableEntry(routeToNode, targetNode, hopDistance));
                     return true;
                 } else {
                     // Already an equal or better routing entry
@@ -79,7 +85,7 @@ public class NHopRoutingTable extends DHTRoutingTable {
         }
 
         // no equivalent routing entry found, add one
-        entries.add(new LookupEntry(routeToNode, targetNode, hopDistance));
+        entries.add(new RoutingTableEntry(routeToNode, targetNode, hopDistance));
         return true;
     }
 }
