@@ -5,7 +5,7 @@ import peersim.core.Network;
 import peersim.core.Node;
 import peersim.dht.DHTProtocol;
 import peersim.dht.message.*;
-import peersim.dht.utils.DHTControl;
+import peersim.dht.utils.DHTControlWithProtocol;
 import peersim.edsim.EDSimulator;
 
 /**
@@ -14,7 +14,7 @@ import peersim.edsim.EDSimulator;
  * @author todd
  * 
  */
-public class RandomPingPongTraffic extends DHTControl {
+public class RandomPingPongTraffic extends DHTControlWithProtocol {
 
 	/**
 	 * Generate messages that route from a random node A to a random node B

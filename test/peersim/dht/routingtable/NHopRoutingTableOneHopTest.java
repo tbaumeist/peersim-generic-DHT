@@ -36,7 +36,7 @@ public class NHopRoutingTableOneHopTest extends Loader {
         List<DHTRoutingTable.RoutingTableEntry> entries = rt.getRoutingTableEntries(n, topologyId);
         int[] node0peers = new int[]{2,10,11,13};
         for(DHTRoutingTable.RoutingTableEntry e : entries) {
-            assertFalse(e.toString().contains(String.format("%d", n.getID())));
+            assertTrue(e.toString().contains(String.format("%d", e.routeToNode.getID())));
             assertTrue(this.contains(node0peers, e.routeToNode.getIndex()));
             assertTrue(this.contains(node0peers, e.targetNode.getIndex()));
         }

@@ -41,6 +41,8 @@ public abstract class DHTRoutingTable implements Protocol {
     }
 
     /**
+     * Get routing table entries.
+     *
      * @param currentNode Get routing table entries for this node.
      * @param topologyPid The protocol ID of the topology protocol.
      * @return List of routing table entries.

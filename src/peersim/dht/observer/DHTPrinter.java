@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 
 import peersim.config.Configuration;
-import peersim.dht.utils.DHTControl;
+import peersim.dht.utils.DHTControlWithProtocol;
 import peersim.util.FileNameGenerator;
 
 /**
@@ -14,7 +14,7 @@ import peersim.util.FileNameGenerator;
  * @author todd
  *
  */
-public abstract class DHTPrinter extends DHTControl{
+public abstract class DHTPrinter extends DHTControlWithProtocol{
 	
 	/**
 	 * This is the prefix of the filename where the graph is saved. The

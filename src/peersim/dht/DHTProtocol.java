@@ -83,7 +83,7 @@ public class DHTProtocol implements EDProtocol, Cloneable {
     }
 
 
-    private DHTRouter getRouter(Node node){
+    public DHTRouter getRouter(Node node){
         if (this.router != null)
             return this.router;
         try {
@@ -99,7 +99,7 @@ public class DHTProtocol implements EDProtocol, Cloneable {
         return this.router;
     }
 
-    private DHTRoutingTable getRoutingTable(Node node){
+    public DHTRoutingTable getRoutingTable(Node node){
         if (this.routingTable != null)
             return this.routingTable;
         try {

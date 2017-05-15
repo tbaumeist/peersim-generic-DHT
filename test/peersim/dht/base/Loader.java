@@ -17,10 +17,14 @@ public abstract class Loader {
     protected final static String BASE_PATH = "test/resources/";
 
     protected static void initSimulator(String confPath) throws Exception {
-        Configuration.setConfig(new ParsedProperties(new String[]{confPath}));
+        Loader.initConfig(confPath);
 
         // Run simulator to init variables
         EDSimulator.nextExperiment();
+    }
+
+    protected static void initConfig(String confPath){
+        Configuration.setConfig(new ParsedProperties(new String[]{confPath}));
     }
 
     protected boolean contains(final int[] array, final int key) {
