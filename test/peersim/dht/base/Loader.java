@@ -16,7 +16,7 @@ public abstract class Loader {
 
     protected final static String BASE_PATH = "test/resources/";
 
-    protected void initSimulator(String confPath) throws Exception {
+    protected static void initSimulator(String confPath) throws Exception {
         Configuration.setConfig(new ParsedProperties(new String[]{confPath}));
 
         // Run simulator to init variables

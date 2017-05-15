@@ -1,5 +1,6 @@
 package peersim.dht.routingtable;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 import peersim.config.Configuration;
 import peersim.core.CommonState;
@@ -16,12 +17,15 @@ import static org.junit.Assert.assertTrue;
  */
 public class NHopRoutingTableThreeHopTest extends Loader {
 
-    @Test
-    public void getRoutingTableEntries() throws Exception {
-        this.initSimulator(Loader.BASE_PATH + "routing_table_3.cfg");
+    @BeforeClass
+    public static void setup() throws Exception {
+        initSimulator(Loader.BASE_PATH + "routing_table_3.cfg");
         assertTrue(CommonState.r.getLastSeed() == 1234567890);
         assertTrue(Network.size() == 14);
+    }
 
+    @Test
+    public void getRoutingTableEntries() throws Exception {
         int routingTableId = Configuration.getPid("protocol.generic_dht.routing_table");
         int topologyId = Configuration.getPid("protocol.generic_dht.topology");
 
