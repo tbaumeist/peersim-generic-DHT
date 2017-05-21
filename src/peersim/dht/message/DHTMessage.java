@@ -18,7 +18,7 @@ public abstract class DHTMessage {
      * message is created.
      */
     private static long MESSAGE_COUNTER = 0;
-    private static Object MESSAGE_LOCK = new Object();
+    private static final Object MESSAGE_LOCK = new Object();
 
     protected final long messageID;
     protected final long refMessageID;
@@ -34,6 +34,7 @@ public abstract class DHTMessage {
         FAILED,
         DELIVERED,
         RETURN_TO_SENDER,
+        DROPPED,
         UNKNOWN
     }
 
@@ -97,21 +98,32 @@ public abstract class DHTMessage {
      * @return Get the source Node a message was sent from.
      */
     public Node getSourceNode() {
-        return this.connectionPath.getSource();
+        PathEntry e = this.connectionPath.getSource();
+        if( e == null)
+            return null;
+        return e.node;
     }
 
     /**
      * @return Get the destination Node of the message.
      */
-    public Node getDestinationNode() {
-        return this.connectionPath.getDestination();
+    public Node getDestinationNode()
+    {
+        PathEntry e = this.connectionPath.getDestination();
+        if(e == null)
+            return null;
+        return e.node;
     }
 
     /**
      * @return Get the previous Node a message was routed to.
      */
-    public Node getPreviousNode() {
-        return this.routingPath.getPreviousNode();
+    public Node getPreviousNode()
+    {
+        PathEntry e = this.routingPath.getPreviousNode();
+        if(e == null)
+            return null;
+        return e.node;
     }
 
     /**
@@ -135,10 +147,10 @@ public abstract class DHTMessage {
      * @param node Node the arrivedAt the message.
      */
     public void arrivedAt(Node node) {
-        this.routingPath.add(node);
+        this.routingPath.add(new PathEntry(node, this.getMessageStatus()));
         // Don't add to connection path if it is already the last node (backtracking)
-        if(this.connectionPath.isEmpty() || !node.equals(this.connectionPath.getLast()))
-            this.connectionPath.add(node);
+        if(this.connectionPath.isEmpty() || !node.equals(this.connectionPath.getLast().node))
+            this.connectionPath.add(new PathEntry(node, this.getMessageStatus()));
     }
 
     /**
@@ -156,10 +168,11 @@ public abstract class DHTMessage {
         return true;
     }
 
-    public String buildPathString(List<Node> path) {
+    public String buildPathString(List<PathEntry> path) {
         StringBuilder b = new StringBuilder();
-        for (Node n : path) {
-            b.append(n.getID());
+        for (PathEntry n : path) {
+            b.append(n.node.getID());
+            b.append('(').append(lookupStatus(n.status)).append(')');
             b.append(">");
         }
         if (b.length() < 1)
@@ -177,5 +190,9 @@ public abstract class DHTMessage {
         if(this.hasRoutingState(n))
             return this.routingState.get(n);
         return null;
+    }
+
+    private String lookupStatus(MessageStatus status){
+        return status.toString().substring(0,2);
     }
 }

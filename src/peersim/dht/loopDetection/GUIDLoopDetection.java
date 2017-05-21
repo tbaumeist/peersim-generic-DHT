@@ -4,6 +4,7 @@ import peersim.core.Node;
 import peersim.core.Protocol;
 import peersim.dht.message.DHTMessage;
 import peersim.dht.message.DHTPath;
+import peersim.dht.message.PathEntry;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -32,7 +33,9 @@ public class GUIDLoopDetection extends LoopDetection implements Protocol{
 	public boolean checkVisitedNode(Node node, DHTMessage message) {
 		DHTPath path = message.getRoutingPath();
 		// ignore the last entry in the routing path
-		List<Node> visited = path.size() > 0? path.subList(0, path.size()-1): new LinkedList<>();
-		return visited.contains(node);
+		List<PathEntry> visited = path.size() > 0? path.subList(0, path.size()-1): new LinkedList<>();
+		for(PathEntry e : visited)
+			if(e.node.equals(node)) return true;
+		return false;
 	}
 }

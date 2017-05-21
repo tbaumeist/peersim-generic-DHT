@@ -4,21 +4,21 @@ import java.util.LinkedList;
 
 import peersim.core.Node;
 
-public class DHTPath extends LinkedList<Node> {
+public class DHTPath extends LinkedList<PathEntry> {
 
 	public int getPathLength(){
 		return this.size() - 1;
 	}
 	
-	public Node getSource(){
+	public PathEntry getSource(){
 		return this.getFirst();
 	}
 	
-	public Node getDestination() {
+	public PathEntry getDestination() {
 		return this.getLast();
 	}
 	
-	public Node getPreviousNode() {
+	public PathEntry getPreviousNode() {
 		if (this.getPathLength() < 1)
 			return null;
 		return this.get(this.getPathLength() - 1);
@@ -26,7 +26,7 @@ public class DHTPath extends LinkedList<Node> {
 
 	public DHTPath reverse(){
 		DHTPath path = new DHTPath();
-		for(Node n : this){
+		for(PathEntry n : this){
 			path.add(0,n);
 		}
 		return path;

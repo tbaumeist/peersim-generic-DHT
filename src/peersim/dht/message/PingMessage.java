@@ -18,7 +18,7 @@ public class PingMessage extends DHTMessage {
 	@Override
 	public DHTMessage onDelivered(int pid) {
 		DHTPath path = this.getConnectionPath();
-		DHTProtocol targetProtocol = (DHTProtocol) path.getSource().getProtocol(pid);
+		DHTProtocol targetProtocol = (DHTProtocol) path.getSource().node.getProtocol(pid);
 
 		return new PongMessage(this, targetProtocol.getAddress());
 	}

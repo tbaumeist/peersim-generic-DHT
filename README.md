@@ -16,12 +16,15 @@ DHTProtocol
    - loop_detection = how loops are detected
    - can_backtrack
    - route_store_file
-
-TODO
+   
+TopologyLoader
+ -Python module networkx seems to be the best bet ATM
  - Add topology generation controllers
-    - Random topologies - have maybe
-    - Small world - need
-    - Structured - need
+     - Random topologies - have maybe
+     - Small world - need
+     - Structured - need
+     
+TODO
  - Churn
  - Random message failure
  - anonymity metric - hard

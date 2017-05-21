@@ -16,10 +16,10 @@ public class PongMessage extends DHTMessage {
 
 		// save the circuit path back to sender in the routing state of the message
 		Node next = null;
-		for(Node n : pingMessage.getConnectionPath()){
+		for(PathEntry n : pingMessage.getConnectionPath()){
 			if(next != null)
-				this.saveRoutingState(n, next);
-			next = n;
+				this.saveRoutingState(n.node, next);
+			next = n.node;
 		}
 	}
 
