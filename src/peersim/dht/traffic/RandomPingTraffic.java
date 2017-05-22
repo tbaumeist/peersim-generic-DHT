@@ -32,7 +32,7 @@ public class RandomPingTraffic extends DHTControlWithProtocol {
 			sender = Network.get(CommonState.r.nextInt(size));
 			target = Network.get(CommonState.r.nextInt(size));
 		} while (sender == null || sender.isUp() == false || target == null
-				|| target.isUp() == false);
+				|| target.isUp() == false || sender.equals(target));
 		DHTProtocol targetProtocol = (DHTProtocol) target.getProtocol(pid);
 		PingOnlyMessage message = new PingOnlyMessage(targetProtocol.getAddress());
 		EDSimulator.add(10, message, sender, pid);
