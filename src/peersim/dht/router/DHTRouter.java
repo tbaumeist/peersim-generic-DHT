@@ -1,6 +1,7 @@
 package peersim.dht.router;
 
 import peersim.config.Configuration;
+import peersim.core.CommonState;
 import peersim.core.Linkable;
 import peersim.core.Node;
 import peersim.core.Protocol;
@@ -33,7 +34,6 @@ public abstract class DHTRouter implements Protocol {
      * @config
      */
     protected static final String PAR_BACK = "can_backtrack";
-    //TODO: Move backtracking into its own object
 
     /**
      * The {@value #PAR_STORE} configuration parameter defines the file the router will store any routing data.
@@ -43,10 +43,21 @@ public abstract class DHTRouter implements Protocol {
      */
     protected static final String PAR_STORE = "route_storage_file";
 
+    /**
+     * The {@value #PAR_DROP_RATE} configuration parameter defines the probability that a given message will be dropped.
+     * Defaults to 0.0 (or drop no messages).
+     * Normally the {@link peersim.transport.UnreliableTransport} class could be used to model dropped messages;
+     * however, {@link peersim.transport.UnreliableTransport} does not notify the protocol that the message was dropped.
+     *
+     * @config
+     */
+    protected static final String PAR_DROP_RATE = "drop_rate";
+
 
     protected final String prefix;
     protected final Boolean canBackTrack;
     protected final DHTRoutingDataStore dhtFileStore;
+    protected final double dropRate;
 
     private LoopDetection loop = null;
 
@@ -54,6 +65,7 @@ public abstract class DHTRouter implements Protocol {
         this.prefix = prefix;
         this.canBackTrack = Configuration.getBoolean(prefix + "." + PAR_BACK, true);
         String dataStoreFileName = Configuration.getString(this.prefix + "." + PAR_STORE, null);
+        this.dropRate = Configuration.getDouble(prefix + "." + PAR_DROP_RATE, 0.0);
         DHTRoutingDataStore store = null;
         if (dataStoreFileName != null) {
             try {
@@ -107,6 +119,17 @@ public abstract class DHTRouter implements Protocol {
         }
     }
 
+    protected void sendDropped(Node node, int pid, int transportPid, DHTMessage message, Node previous){
+        Transport transport = (Transport) node.getProtocol(transportPid);
+        if (message.prepareToBacktrack()) {
+            message.setMessageStatus(DHTMessage.MessageStatus.DROPPED);
+            transport.send(node, previous, message, pid);
+        } else {
+            message.setMessageStatus(DHTMessage.MessageStatus.FAILED);
+            this.storeRouteData(message);
+        }
+    }
+
     public void route(DHTRoutingTable routingTable, Node node, int pid, int transportPid, int linkPid, Object event) {
         DHTMessage message = (DHTMessage) event;
         DHTProtocol currentNode = (DHTProtocol) node.getProtocol(pid);
@@ -114,10 +137,26 @@ public abstract class DHTRouter implements Protocol {
         // Add node to the messages visited list
         message.arrivedAt(node);
 
-        // Check if this message was backtracked to this node
-        if (message.getMessageStatus() == DHTMessage.MessageStatus.BACKTRACKED) {
+        // Check if this message was backtracked or dropped to this node
+        if (message.getMessageStatus() == DHTMessage.MessageStatus.BACKTRACKED ||
+                message.getMessageStatus() == DHTMessage.MessageStatus.DROPPED) {
             message.setMessageStatus(DHTMessage.MessageStatus.FORWARDED);
             routeNextNode(routingTable, node, pid, transportPid, linkPid, message);
+            return;
+        }
+
+        // Drop a message at random, except if it is the first node
+        // Message isn't actually dropped. Instead set status to dropped and go back to the previous node
+        // This was the easiest way to implemented message dropping.
+        if (message.getConnectionPath().size() > 1 && CommonState.r.nextDouble() <= this.dropRate){
+            // ok we decided to drop the message
+            // check if this was a reply message, in which case fail the delivery because the circuit is broke
+            if(message.getMessageStatus() == DHTMessage.MessageStatus.RETURN_TO_SENDER){
+                message.setMessageStatus(DHTMessage.MessageStatus.FAILED);
+                this.storeRouteData(message);
+                return;
+            }
+            this.sendDropped(node, pid, transportPid, message, message.getPreviousNode());
             return;
         }
 

@@ -171,8 +171,7 @@ public abstract class DHTMessage {
     public String buildPathString(List<PathEntry> path) {
         StringBuilder b = new StringBuilder();
         for (PathEntry n : path) {
-            b.append(n.node.getID());
-            b.append('(').append(lookupStatus(n.status)).append(')');
+            b.append(n);
             b.append(">");
         }
         if (b.length() < 1)
@@ -190,9 +189,5 @@ public abstract class DHTMessage {
         if(this.hasRoutingState(n))
             return this.routingState.get(n);
         return null;
-    }
-
-    private String lookupStatus(MessageStatus status){
-        return status.toString().substring(0,2);
     }
 }

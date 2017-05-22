@@ -18,26 +18,39 @@ public class DHTRoutingDataStore {
     private static Hashtable<String, DHTRoutingDataStore> instances = new Hashtable<>();
 
     public static DHTRoutingDataStore getInstance(String filePath) throws SecurityException, IOException{
+        // special string for stdout
+        if (filePath.equals("-"))
+            return addGetInstance(filePath);
+
+        // normal file path
         File f = new File(filePath);
-        if(!DHTRoutingDataStore.instances.containsKey(f.getCanonicalPath()))
-            DHTRoutingDataStore.instances.put(f.getCanonicalPath(), new DHTRoutingDataStore(f.getCanonicalPath()));
-        return DHTRoutingDataStore.instances.get(f.getCanonicalPath());
+        return addGetInstance(f.getCanonicalPath());
+    }
+
+    private static DHTRoutingDataStore addGetInstance(String filePath) throws SecurityException, IOException{
+        if(!DHTRoutingDataStore.instances.containsKey(filePath))
+            DHTRoutingDataStore.instances.put(filePath, new DHTRoutingDataStore(filePath));
+        return DHTRoutingDataStore.instances.get(filePath);
     }
 
     private DHTRoutingDataStore(String filePath) throws SecurityException, IOException {
         // Use the built in Java file logging class to write to file
         this.logger = Logger.getAnonymousLogger();
         this.logger.setUseParentHandlers(false);
-        File f = new File(filePath);
-        if(f.exists())
-            f.delete();
-        f.getParentFile().mkdirs();
-        f.createNewFile();
 
-        FileHandler fh = new FileHandler(filePath, true);
-        this.logger.addHandler(fh);
-        CustomRecordFormatter formatter = new CustomRecordFormatter();
-        fh.setFormatter(formatter);
+        if (filePath.equals("-")){
+            this.logger.setUseParentHandlers(true);
+        } else {
+            File f = new File(filePath);
+            if(f.exists())
+                f.delete();
+            f.getParentFile().mkdirs();
+            f.createNewFile();
+
+            FileHandler fh = new FileHandler(filePath, true);
+            this.logger.addHandler(fh);
+            fh.setFormatter(new CustomRecordFormatter());
+        }
 
         this.logger.info("ID,Ref_ID,Source,Destination,Target,Type,Delivered,Search_Path_Length,Connection_Path_Length,Search_Path,Connection_Path\n");
     }

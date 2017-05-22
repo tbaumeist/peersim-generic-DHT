@@ -13,4 +13,15 @@ public class PathEntry {
         this.node = n;
         this.status = s;
     }
+
+    public String toString(){
+        StringBuilder b = new StringBuilder();
+        b.append(this.node.getID());
+        b.append('(').append(lookupStatus(this.status)).append(')');
+        return b.toString();
+    }
+
+    private String lookupStatus(DHTMessage.MessageStatus status){
+        return status.toString().substring(0,2);
+    }
 }
