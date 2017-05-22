@@ -26,5 +26,4 @@ TopologyLoader
      
 TODO
  - Churn
- - Random message failure
  - anonymity metric - hard
