@@ -1,6 +1,7 @@
 package peersim.dht.message;
 
 import peersim.core.Node;
+import peersim.dht.DHTProtocol;
 import peersim.dht.utils.Address;
 
 import java.util.Hashtable;
@@ -35,6 +36,7 @@ public abstract class DHTMessage {
         DELIVERED,
         RETURN_TO_SENDER,
         DROPPED,
+        INIT,
         UNKNOWN
     }
 
@@ -50,6 +52,7 @@ public abstract class DHTMessage {
         }
         this.refMessageID = refMessageID;
         this.targetAddress = target;
+        this.messageStatus = MessageStatus.INIT;
     }
 
     /**
@@ -145,12 +148,13 @@ public abstract class DHTMessage {
      * Called to notify a message that it has been routed to a node.
      *
      * @param node Node the arrivedAt the message.
+     * @param dhtNode DHT node the message arrived at.
      */
-    public void arrivedAt(Node node) {
-        this.routingPath.add(new PathEntry(node, this.getMessageStatus()));
+    public void arrivedAt(Node node, DHTProtocol dhtNode) {
+        this.routingPath.add(new PathEntry(node, dhtNode, this.getMessageStatus()));
         // Don't add to connection path if it is already the last node (backtracking)
         if(this.connectionPath.isEmpty() || !node.equals(this.connectionPath.getLast().node))
-            this.connectionPath.add(new PathEntry(node, this.getMessageStatus()));
+            this.connectionPath.add(new PathEntry(node, dhtNode, this.getMessageStatus()));
     }
 
     /**

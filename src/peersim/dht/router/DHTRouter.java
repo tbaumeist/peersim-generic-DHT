@@ -135,7 +135,7 @@ public abstract class DHTRouter implements Protocol {
         DHTProtocol currentNode = (DHTProtocol) node.getProtocol(pid);
 
         // Add node to the messages visited list
-        message.arrivedAt(node);
+        message.arrivedAt(node, currentNode);
 
         // Check if this message was backtracked or dropped to this node
         if (message.getMessageStatus() == DHTMessage.MessageStatus.BACKTRACKED ||

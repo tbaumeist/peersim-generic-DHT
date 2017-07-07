@@ -2,6 +2,8 @@ package peersim.dht.message;
 
 import java.util.LinkedList;
 
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import peersim.core.Node;
 
 public class DHTPath extends LinkedList<PathEntry> {
@@ -29,6 +31,17 @@ public class DHTPath extends LinkedList<PathEntry> {
 		for(PathEntry n : this){
 			path.add(0,n);
 		}
+		return path;
+	}
+
+	public JSONObject toJSON(){
+		JSONObject path = new JSONObject();
+		path.put("length", this.getPathLength());
+		JSONArray nodes = new JSONArray();
+		for( PathEntry e : this){
+			nodes.add(e.toJSON());
+		}
+		path.put("path", nodes);
 		return path;
 	}
 }

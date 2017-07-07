@@ -26,4 +26,7 @@ TopologyLoader
      
 TODO
  - Churn
+     - Random Topologies - Done
+     - Structured Topologies - TODO
+     - Small World Topologies - TODO
  - anonymity metric - hard

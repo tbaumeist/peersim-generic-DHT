@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Hashtable;
 import java.util.logging.*;
+import org.json.simple.*;
 
 /**
  * Created by baumeist on 12/18/16.
@@ -52,17 +53,21 @@ public class DHTRoutingDataStore {
             fh.setFormatter(new CustomRecordFormatter());
         }
 
-        this.logger.info("ID,Ref_ID,Source,Destination,Target,Type,Delivered,Search_Path_Length,Connection_Path_Length,Search_Path,Connection_Path\n");
     }
 
     public void storeData(DHTMessage m){
         // Dump the message
-        this.logger.info(String.format(this.outFormat, m.getMessageID(), m.getRefMessageID(),
-                    m.getSourceNode().getID(), m.getDestinationNode().getID(),
-                    m.getTarget(), m.getClass().toString(), m.wasDelivered(),
-                    m.getRoutingPath().getPathLength(), m.getConnectionPath().getPathLength(),
-                    m.buildPathString(m.getRoutingPath()),
-                    m.buildPathString(m.getConnectionPath())));
+        JSONObject message = new JSONObject();
+        message.put("id", m.getMessageID());
+        message.put("ref_id", m.getRefMessageID());
+        message.put("source_node", m.getSourceNode().getID());
+        message.put("destination_node", m.getDestinationNode().getID());
+        message.put("target", m.getTarget());
+        message.put("message_type", m.getClass().toString());
+        message.put("delivered", m.wasDelivered());
+        message.put("routing_path", m.getRoutingPath().toJSON());
+        message.put("connection_path", m.getConnectionPath().toJSON());
+        this.logger.info(message.toJSONString() + "\n");
     }
 
     private class CustomRecordFormatter extends Formatter {
