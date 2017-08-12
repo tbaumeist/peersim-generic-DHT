@@ -53,6 +53,8 @@ public class DHTProtocol implements EDProtocol, Cloneable {
 
     private Address address = null;
 
+    private boolean isAdversary = false;
+
     public DHTProtocol(String prefix) {
         this.prefix = prefix;
         this.linkPid = Configuration.getPid(prefix + "." + PAR_LINK);
@@ -116,6 +118,18 @@ public class DHTProtocol implements EDProtocol, Cloneable {
     }
 
     /**
+     * Set a node to be an adversary.
+     * @param isAdversary True = node is adversary; False = node is not an adversary.
+     */
+    public void setAdversary(boolean isAdversary){ this.isAdversary = isAdversary; }
+
+    /**
+     * Get status is node is an adversary.
+     * @return True = node is adversary; False = node is not an adversary.
+     */
+    public boolean isAdversary(){ return this.isAdversary; }
+
+    /**
      * Replicate this object by returning an identical copy.<br>
      * It is called by the initializer and do not fill any particular field.
      *
@@ -128,7 +142,9 @@ public class DHTProtocol implements EDProtocol, Cloneable {
 
     @Override
     public String toString() {
-        return String.format("DHT Location: %s", this.getAddress());
+        if(!this.isAdversary())
+            return String.format("DHT Location: %s", this.getAddress());
+        return String.format("DHT Location: %s (adversary)", this.getAddress());
     }
 
 }
