@@ -21,6 +21,8 @@ public abstract class DHTMessage {
     private static long MESSAGE_COUNTER = 0;
     private static final Object MESSAGE_LOCK = new Object();
 
+    private int current_hop = 0;
+
     protected final long messageID;
     protected final long refMessageID;
     protected final Address targetAddress;
@@ -151,10 +153,16 @@ public abstract class DHTMessage {
      * @param dhtNode DHT node the message arrived at.
      */
     public void arrivedAt(Node node, DHTProtocol dhtNode) {
-        this.routingPath.add(new PathEntry(node, dhtNode, this.getMessageStatus()));
+        this.routingPath.add(new PathEntry(node, dhtNode,
+                this.current_hop, this.getMessageStatus()));
         // Don't add to connection path if it is already the last node (backtracking)
         if(this.connectionPath.isEmpty() || !node.equals(this.connectionPath.getLast().node))
-            this.connectionPath.add(new PathEntry(node, dhtNode, this.getMessageStatus()));
+            this.connectionPath.add(new PathEntry(node, dhtNode,
+                    this.current_hop, this.getMessageStatus()));
+        else
+            this.current_hop -= 2; // correct for backtracking
+
+        this.current_hop++;
     }
 
     /**

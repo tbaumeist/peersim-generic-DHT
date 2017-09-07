@@ -28,11 +28,13 @@ public class RandomPingPongTraffic extends DHTControlWithProtocol {
 	public boolean execute() {
 		int size = Network.size();
 		Node sender, target;
+		DHTProtocol senderDht;
 		do {
 			sender = Network.get(CommonState.r.nextInt(size));
+			senderDht = (DHTProtocol)sender.getProtocol(this.pid);
 			target = Network.get(CommonState.r.nextInt(size));
 		} while (sender == null || sender.isUp() == false || target == null
-				|| target.isUp() == false || sender.equals(target));
+				|| target.isUp() == false || sender.equals(target) || senderDht.isAdversary());
 		DHTProtocol targetProtocol = (DHTProtocol) target.getProtocol(this.pid);
 		PingMessage message = new PingMessage(targetProtocol.getAddress());
 		EDSimulator.add(10, message, sender, this.pid);

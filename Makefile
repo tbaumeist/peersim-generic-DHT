@@ -1,4 +1,4 @@
-.PHONY: all clean doc compile
+.PHONY: all clean doc compile jar
 
 PEERSIM_JARS=""
 LIB_JARS=`find -L lib/ -name "*.jar" | tr [:space:] :`
@@ -15,7 +15,11 @@ doc:
 run:
 	java -cp $(LIB_JARS):$(PEERSIM_JARS):classes peersim.Simulator example.cfg
 
-all: compile doc run
+all: compile doc jar run
+
+jar: compile
+	mkdir -p bin
+	jar cvfe bin/generic_dht.jar peersim.Simulator -C classes .
 
 clean: 
-	rm -fr classes doc
+	rm -fr classes doc bin

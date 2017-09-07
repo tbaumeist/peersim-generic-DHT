@@ -47,7 +47,7 @@ public class DHTProtocol implements EDProtocol, Cloneable {
     private static final String PAR_ROUTING_TABLE = "routing_table";
 
     private final String prefix;
-    private final int linkPid, transportPid;
+    private final int myPid, linkPid, transportPid;
     private DHTRouter router = null;
     private DHTRoutingTable routingTable = null;
 
@@ -57,9 +57,13 @@ public class DHTProtocol implements EDProtocol, Cloneable {
 
     public DHTProtocol(String prefix) {
         this.prefix = prefix;
-        this.linkPid = Configuration.getPid(prefix + "." + PAR_LINK);
-        this.transportPid = Configuration.getPid(prefix + "." + PAR_TRANS);
+        this.linkPid = Configuration.getPid(this.prefix + "." + PAR_LINK);
+        this.transportPid = Configuration.getPid(this.prefix + "." + PAR_TRANS);
         this.address = new Address(CommonState.r.nextDouble());
+
+        // the the protocol id of this protocol
+        String[] name = this.prefix.split("\\.");
+        this.myPid = Configuration.lookupPid(name[name.length-1]);
     }
 
     @Override
@@ -146,5 +150,4 @@ public class DHTProtocol implements EDProtocol, Cloneable {
             return String.format("DHT Location: %s", this.getAddress());
         return String.format("DHT Location: %s (adversary)", this.getAddress());
     }
-
 }

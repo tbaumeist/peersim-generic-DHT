@@ -4,6 +4,7 @@ import peersim.config.Configuration;
 import peersim.core.CommonState;
 import peersim.core.Node;
 import peersim.dht.DHTProtocol;
+import peersim.dht.observer.GlobalStatsObserver;
 import peersim.dht.routingtable.DHTRoutingTable;
 import peersim.dht.message.DHTMessage;
 import peersim.dht.utils.Address;
@@ -41,6 +42,7 @@ public class DHTRouterGreedy extends DHTRouter {
             this.sendBacktrack(node, pid, transportPid, linkPid, message, state.getPrevious());
         } else {
             state.addRoutedTo(next);
+            GlobalStatsObserver.addRoutingChoice(state.getRoutedTo().size());
             transport.send(node, next, message, pid);
         }
     }

@@ -1,6 +1,7 @@
 package peersim.dht.observer;
 
 import peersim.config.Configuration;
+import peersim.core.CommonState;
 import peersim.core.Node;
 import peersim.dht.DHTProtocol;
 import peersim.graph.Graph;
@@ -11,6 +12,7 @@ import java.io.File;
 import java.io.PrintStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Iterator;
 
 /**
@@ -100,16 +102,21 @@ public class DHTGraphPrinter extends GraphObserver {
 	 */
 	private void writeGML(Graph g, PrintStream out) {
 
-		out.println("graph [ directed " + (g.directed() ? "1" : "0"));
+		out.println("graph [");
+		out.println("\tdirected " + (g.directed() ? "1" : "0"));
+		out.println("\tcycle " + CommonState.getTime());
+		out.println("\tbeginningChurnCount " + GlobalStatsObserver.getNetworkChurnCount());
+
 
 		for (int i = 0; i < g.size(); ++i) {
 			Node n = (Node) g.getNode(i);
 			DHTProtocol dhtNode = (DHTProtocol) n.getProtocol(this.did);
-			out.println("node [");
-			out.println("\tid " + n.getID());
-			out.println("\tlabel \"" + dhtNode.getAddress() + "\"");
-			out.println("\tlocation " + dhtNode.getAddress());
-			out.println("]");
+			out.println("\tnode [");
+			out.println("\t\tid " + n.getID());
+			out.println("\t\tlabel \"" + dhtNode.getAddress() + "\"");
+			out.println("\t\tlocation " + dhtNode.getAddress());
+			out.println("\t\tadversary " + (dhtNode.isAdversary()?1:0));
+			out.println("\t]");
 		}
 
 		for (int i = 0; i < g.size(); ++i) {
@@ -117,6 +124,9 @@ public class DHTGraphPrinter extends GraphObserver {
 			Iterator<Integer> it = g.getNeighbours(i).iterator();
 			while (it.hasNext()) {
 				Node n2 = (Node) g.getNode(it.next());
+				// only write edges once ... so
+				if(n.getID() > n2.getID())
+					continue;
 				out.println("edge [ source " + n.getID() + " target "
 						+ n2.getID() + " ]");
 			}

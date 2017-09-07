@@ -7,28 +7,23 @@ import peersim.dht.DHTProtocol;
 /**
  * Created by baumeist on 5/21/17.
  */
-public class PathEntry {
-    public Node node;
-    public DHTProtocol dht;
-    public DHTMessage.MessageStatus status;
+public class PathEntry extends Entry{
+    public final DHTMessage.MessageStatus status;
 
-    public PathEntry(Node n, DHTProtocol dhtNode, DHTMessage.MessageStatus s){
-        this.node = n;
-        this.dht = dhtNode;
+    public PathEntry(Node n, DHTProtocol dhtNode, int hop, DHTMessage.MessageStatus s){
+        super(n, dhtNode, hop);
         this.status = s;
     }
 
     public String toString(){
         StringBuilder b = new StringBuilder();
-        b.append(this.node.getID());
-        b.append('(').append(lookupStatus(this.status)).append(')');
+        b.append(super.toString());
+        b.append('(').append(lookupStatus(this.status)).append('-').append(this.hop).append(')');
         return b.toString();
     }
 
     public JSONObject toJSON(){
-        JSONObject entry = new JSONObject();
-        entry.put("id", this.node.getID());
-        entry.put("address", this.dht.getAddress());
+        JSONObject entry = super.toJSON();
         entry.put("status", this.status.toString());
         return entry;
     }

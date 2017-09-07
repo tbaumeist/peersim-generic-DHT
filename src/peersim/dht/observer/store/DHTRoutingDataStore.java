@@ -1,5 +1,6 @@
 package peersim.dht.observer.store;
 
+import peersim.core.CommonState;
 import peersim.dht.message.DHTMessage;
 
 import java.io.File;
@@ -7,6 +8,7 @@ import java.io.IOException;
 import java.util.Hashtable;
 import java.util.logging.*;
 import org.json.simple.*;
+import peersim.dht.observer.GlobalStatsObserver;
 
 /**
  * Created by baumeist on 12/18/16.
@@ -67,6 +69,9 @@ public class DHTRoutingDataStore {
         message.put("delivered", m.wasDelivered());
         message.put("routing_path", m.getRoutingPath().toJSON());
         message.put("connection_path", m.getConnectionPath().toJSON());
+        message.put("churn_count", GlobalStatsObserver.getNetworkChurnCount());
+        message.put("cycle", CommonState.getTime());
+
         this.logger.info(message.toJSONString() + "\n");
     }
 
