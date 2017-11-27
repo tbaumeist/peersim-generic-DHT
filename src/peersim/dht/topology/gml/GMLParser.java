@@ -85,6 +85,10 @@ public class GMLParser {
             Object address = map.remove(GMLTokens.LOCATION);
             if (address == null)
                 throw new IOException(String.format("%s of the node not found", GMLTokens.LOCATION));
+            if (Integer.class.isInstance(address)){
+                // convert to Double
+                address = Double.valueOf((double)((Integer)address).intValue());
+            }
             dht.setAddress((double)address);
         } else {
             throw new IOException("No id found for node");
