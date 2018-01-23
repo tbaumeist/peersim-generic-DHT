@@ -101,6 +101,7 @@ public class DHTRouterGreedy extends DHTRouter {
                                    Collection<Node> alreadyTried){
         Node next = null;  // stores next node to route to
         Address nextTargetAddress = null; // stores the target address used to compare entries
+        int nextHops = 0; // store hop distance to next node, prefer shorter hops
         List<DHTRoutingTable.RoutingTableEntry> lookups = routingTable.getRoutingTableEntries(node, linkPid);
 
         for (DHTRoutingTable.RoutingTableEntry entry : lookups) {
@@ -114,9 +115,14 @@ public class DHTRouterGreedy extends DHTRouter {
 
             // check the distance between the entry and our target
             Address nAddress = ((DHTProtocol) entry.targetNode.getProtocol(pid)).getAddress();
-            if (next == null || nAddress.distance(target) < nextTargetAddress.distance(target)) {
+            // entry is closer then the closest option ATM
+            // if distance is the same pick the closer node
+            if (next == null ||
+                    nAddress.distance(target) < nextTargetAddress.distance(target) ||
+                    (nAddress.distance(target) == nextTargetAddress.distance(target) && entry.hopDistance < nextHops)) {
                 next = entry.routeToNode;
                 nextTargetAddress = nAddress;
+                nextHops = entry.hopDistance;
             }
         }
         return next;
