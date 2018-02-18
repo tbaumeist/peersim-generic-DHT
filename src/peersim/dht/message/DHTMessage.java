@@ -39,6 +39,7 @@ public abstract class DHTMessage {
         RETURN_TO_SENDER,
         DROPPED,
         INIT,
+        MAX_LENGTH,
         UNKNOWN
     }
 

@@ -44,6 +44,14 @@ public abstract class DHTRouter implements Protocol {
     protected static final String PAR_STORE = "route_storage_file";
 
     /**
+     * The {@value #PAR_MAX_ROUTE_LENGTH} configuration parameter defines the maximum routing path length.
+     * Defaults to 0 which means its not limited.
+     *
+     * @config
+     */
+    protected static final String PAR_MAX_ROUTE_LENGTH = "max_route_length";
+
+    /**
      * The {@value #PAR_DROP_RATE} configuration parameter defines the probability that a given message will be dropped.
      * Defaults to 0.0 (or drop no messages).
      * Normally the {@link peersim.transport.UnreliableTransport} class could be used to model dropped messages;
@@ -58,6 +66,7 @@ public abstract class DHTRouter implements Protocol {
     protected final Boolean canBackTrack;
     protected final DHTRoutingDataStore dhtFileStore;
     protected final double dropRate;
+    protected final int maxRouteLength;
 
     private LoopDetection loop = null;
 
@@ -66,6 +75,7 @@ public abstract class DHTRouter implements Protocol {
         this.canBackTrack = Configuration.getBoolean(prefix + "." + PAR_BACK, true);
         String dataStoreFileName = Configuration.getString(this.prefix + "." + PAR_STORE, null);
         this.dropRate = Configuration.getDouble(prefix + "." + PAR_DROP_RATE, 0.0);
+        this.maxRouteLength = Configuration.getInt(prefix + "." + PAR_MAX_ROUTE_LENGTH, 0);
         DHTRoutingDataStore store = null;
         if (dataStoreFileName != null) {
             try {
@@ -142,6 +152,13 @@ public abstract class DHTRouter implements Protocol {
                 message.getMessageStatus() == DHTMessage.MessageStatus.DROPPED) {
             message.setMessageStatus(DHTMessage.MessageStatus.FORWARDED);
             routeNextNode(routingTable, node, pid, transportPid, linkPid, message);
+            return;
+        }
+
+        // Check if the maximum path length has been reached
+        if (this.maxRouteLength > 0 && message.getRoutingPath().size() > this.maxRouteLength){
+            message.setMessageStatus(DHTMessage.MessageStatus.MAX_LENGTH);
+            this.storeRouteData(message);
             return;
         }
 
