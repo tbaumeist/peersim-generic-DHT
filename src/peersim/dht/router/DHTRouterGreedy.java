@@ -33,7 +33,7 @@ public class DHTRouterGreedy extends DHTRouter {
         this.randomness = Configuration.getDouble(prefix + "." + PAR_RANDOMNESS, 0.0);
     }
 
-    private void sendNext(Node node, int pid, int transportPid, int linkPid, DHTMessage message, Node next,
+    protected void sendNext(Node node, int pid, int transportPid, int linkPid, DHTMessage message, Node next,
                           RoutingState state){
         Transport transport = (Transport) node.getProtocol(transportPid);
 
@@ -75,7 +75,7 @@ public class DHTRouterGreedy extends DHTRouter {
         return dolly;
     }
 
-    private Node getRandomNode(DHTRoutingTable routingTable, Node node, int linkPid, Node previous, Collection<Node> alreadyTried)
+    protected Node getRandomNode(DHTRoutingTable routingTable, Node node, int linkPid, Node previous, Collection<Node> alreadyTried)
     {
         List<DHTRoutingTable.RoutingTableEntry> lookups = routingTable.getRoutingTableEntries(node, linkPid);
 
@@ -97,7 +97,7 @@ public class DHTRouterGreedy extends DHTRouter {
         return null;
     }
 
-    private Node getNextGreedyNode(DHTRoutingTable routingTable, Node node, int linkPid, int pid, Address target, Node previous,
+    protected Node getNextGreedyNode(DHTRoutingTable routingTable, Node node, int linkPid, int pid, Address target, Node previous,
                                    Collection<Node> alreadyTried){
         Node next = null;  // stores next node to route to
         Address nextTargetAddress = null; // stores the target address used to compare entries
@@ -128,7 +128,7 @@ public class DHTRouterGreedy extends DHTRouter {
         return next;
     }
 
-    private class RoutingState{
+    protected class RoutingState{
         private final Node previous;
         private LinkedList<Node> routedTo = new LinkedList<>();
         private boolean isRandom = false;
