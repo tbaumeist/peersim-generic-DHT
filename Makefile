@@ -5,7 +5,7 @@ LIB_JARS=`find -L lib/ -name "*.jar" | tr [:space:] :`
 
 compile:
 	mkdir -p classes
-	javac -g -sourcepath src -classpath $(LIB_JARS):$(PEERSIM_JARS) -d classes `find -L -name "*.java"`
+	javac -g -sourcepath src -classpath $(LIB_JARS):$(PEERSIM_JARS) -d classes `find -L . -name "*.java"`
 
 doc:
 	mkdir -p doc
