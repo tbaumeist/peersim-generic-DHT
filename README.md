@@ -6,27 +6,36 @@ Arguments: example.cfg
 Class Path: add contents of /lib
 
 
-## Notes
+# Instructions from original project
 
-DHTProtocol
- - topology - linkable peer connection. Topology
- - transport - connections used for communications
- - routing_table - How the protocol lookups up possible routing paths
- - router - processes messages and routes to next node
-   - loop_detection = how loops are detected
-   - can_backtrack
-   - route_store_file
-   
-TopologyLoader
- -Python module networkx seems to be the best bet ATM
- - Add topology generation controllers
-     - Random topologies - have maybe
-     - Small world - need
-     - Structured - need
-     
-TODO
- - Churn
-     - Random Topologies - Done
-     - Structured Topologies - TODO
-     - Small World Topologies - TODO
- - anonymity metric - hard
+---------------------------------
+Generic DHT for the Peersim Simulator
+---------------------------------
+
+The jar files of peersim must be downloaded separately.
+An example exmaple.cfg configuration file can be found in the 
+main directory.
+
+---------------------------------
+Makefile
+---------------------------------
+
+To run the Makefile, modify the PEERSIM_JARS variable to point to 
+your peersim installation, or copy the peersim jar files to the lib
+directory. 
+
+To compile the sources, invoke:
+
+  make
+
+To compile the API documentation, invoke:
+
+  make doc
+
+To run the code, invoke:
+
+  make run
+
+To run all the previous command in this order, invoke:
+
+  make all
